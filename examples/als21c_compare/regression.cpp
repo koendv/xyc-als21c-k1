@@ -2,38 +2,87 @@
 #include <math.h>
 
 regression::regression() {
-  reset();
+  clear();
 }
 
-void regression::reset() {
-  sum_x = 0.0;
-  sum_x2 = 0.0;
-  sum_y = 0.0;
-  sum_y2 = 0.0;
-  sum_xy = 0.0;
-  n = 0;
+/*! @brief: clear statistics */
+void regression::clear() {
+  _sum_x = 0.0;
+  _sum_x2 = 0.0;
+  _sum_y = 0.0;
+  _sum_y2 = 0.0;
+  _sum_xy = 0.0;
+  _n = 0;
 }
 
-void regression::addSample(float x, float y) {
-  sum_x += x;
-  sum_x2 += x * x;
-  sum_y += y;
-  sum_y2 += y * y;
-  sum_xy += x * y;
-  n++;
+/*! @brief: add a sample */
+void regression::add(float x, float y) {
+  _sum_x += x;
+  _sum_x2 += x * x;
+  _sum_y += y;
+  _sum_y2 += y * y;
+  _sum_xy += x * y;
+  _n++;
 }
 
-void regression::calculate() {
-  if (n * sum_x2 - sum_x * sum_x != 0) {
-    m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x);
-    b = (sum_y * sum_x2 - sum_x * sum_xy) / (n * sum_x2 - sum_x * sum_x);
-    if (n * sum_y2 - sum_y * sum_y != 0)
-      r = (n * sum_xy - sum_x * sum_y) / sqrtf((n * sum_x2 - sum_x * sum_x) * (n * sum_y2 - sum_y * sum_y));
-    else
-      r = 0;
-  } else {
-    m = 0;
-    b = 0;
-    r = 0;
-  }
+/*! @brief: remove a sample */
+void regression::remove(float x, float y) {
+  _sum_x -= x;
+  _sum_x2 -= x * x;
+  _sum_y -= y;
+  _sum_y2 -= y * y;
+  _sum_xy -= x * y;
+  --_n;
+}
+
+/*! @brief: number of samples */
+int regression::n() {
+  return _n;
+}
+
+/* y = a * x + b */
+
+/*! @brief: slope */
+float regression::a() {
+  return (_n * _sum_xy - _sum_x * _sum_y) / (_n * _sum_x2 - _sum_x * _sum_x);
+}
+
+/*! @brief: intercept */
+float regression::b() {
+  return (_sum_y * _sum_x2 - _sum_x * _sum_xy) / (_n * _sum_x2 - _sum_x * _sum_x);
+}
+
+/*! @brief: correlation*/
+float regression::r() {
+  return (_n * _sum_xy - _sum_x * _sum_y) / sqrtf((_n * _sum_x2 - _sum_x * _sum_x) * (_n * _sum_y2 - _sum_y * _sum_y));
+}
+
+/*! @brief: x standard deviation */
+float regression::std_x() {
+  return sqrtf((_sum_x2 - _sum_x * _sum_x / _n) / (_n - 1));
+}
+
+/*! @brief: y standard deviation */
+float regression::std_y() {
+  return sqrtf((_sum_y2 - _sum_y * _sum_y / _n) / (_n - 1));
+}
+
+/*! @brief: x mean */
+float regression::mean_x() {
+  return _sum_x / _n;
+}
+
+/*! @brief: y mean */
+float regression::mean_y() {
+  return _sum_y / _n;
+}
+
+/*! @brief: y(x) */
+float regression::y(float x) {
+  return a() * x + b();
+}
+
+/*! @brief: x(y) */
+float regression::x(float y) {
+  return (y - b()) / a();
 }

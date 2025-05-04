@@ -47,14 +47,9 @@ void setup() {
       ;
   } else Serial.println("veml7700 found");
 
-  als21c_set_gain(ALS21C_GAIN_256X);
-  als21c_set_integration(ALS21C_INT_TIME_64T, 0);
   als21c_set_wait_time(250);
-  // als21c_set_auto_lux(true);
+  als21c_set_auto_lux(true);
   als21c_enable(true);
-
-  // veml.setGain(VEML7700_GAIN_1_8);
-  // veml.setIntegrationTime(VEML7700_IT_100MS);
 }
 
 void loop() {
@@ -63,7 +58,7 @@ void loop() {
   float veml7700_lux;
 
   als21c_lux = als21c_read_lux();
-  veml7700_lux = veml.readLux(VEML_LUX_CORRECTED);
+  veml7700_lux = veml.readLux(VEML_LUX_AUTO);
 
   Serial.print("veml7700: ");
   Serial.print(veml7700_lux);
@@ -77,18 +72,17 @@ void loop() {
   }
 
   if (als21c_lux >= 0) {
-    lin_reg.addSample(veml7700_lux, als21c_lux);
-    if (lin_reg.n % 100 == 0) {
+    lin_reg.add(veml7700_lux, als21c_lux);
+    if (lin_reg.n() % 100 == 0) {
       /* print linear regression every 100 samples */
-      lin_reg.calculate();
       Serial.print("samples: ");
-      Serial.print(lin_reg.n);
+      Serial.print(lin_reg.n());
       Serial.print("\t slope: ");
-      Serial.print(lin_reg.m, 4);
+      Serial.print(lin_reg.a(), 4);
       Serial.print("\t intercept: ");
-      Serial.print(lin_reg.b, 4);
+      Serial.print(lin_reg.b(), 4);
       Serial.print("\t correlation: ");
-      Serial.println(lin_reg.r, 4);
+      Serial.println(lin_reg.r(), 4);
     }
   }
 

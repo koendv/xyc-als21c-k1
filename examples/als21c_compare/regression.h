@@ -1,25 +1,31 @@
 #ifndef _REGRESSION_H
 #define _REGRESSION_H
 
-/* calculate linear regression */
+/* small linear regression library - requires 24 bytes ram */
 
 class regression {
 public:
   regression();
-  /* add sample to linear regression */
-  void addSample(float x, float y);
   /* clear all samples */
-  void reset();
-  /* calculate slope, intercept, correlation */
-  void calculate();
-  /* number of samples */
-  int n;
-  /* y = m * x + b . */
-  float m, /* slope */
-    b,     /* intercept */
-    r;     /* correlation*/
+  void clear();
+  /* add sample to linear regression */
+  void add(float x, float y);
+  /* remove sample from linear regression */
+  void remove(float x, float y);
+  /* y = a * x + b */
+  int n();          /*!< number of samples */
+  float a();        /*!< slope */
+  float b();        /*!< intercept */
+  float r();        /*!< correlation*/
+  float std_x();    /*!< x standard deviation */
+  float std_y();    /*!< y standard deviation */
+  float mean_x();   /*!< x mean */
+  float mean_y();   /*!< y mean */
+  float y(float x); /*!< y(x) */
+  float x(float y); /*!< x(y) */
 private:
-  float sum_x, sum_x2, sum_y, sum_y2, sum_xy;
+  float _sum_x, _sum_x2, _sum_y, _sum_y2, _sum_xy;
+  int _n;
 };
 
 #endif
