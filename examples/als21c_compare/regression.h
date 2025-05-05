@@ -1,7 +1,24 @@
 #ifndef _REGRESSION_H
 #define _REGRESSION_H
 
-/* small linear regression library - requires 24 bytes ram */
+/*
+ small linear regression library - requires 24 bytes ram
+
+ Does curve fitting for straight lines, exponential, logarithmic and power curves.
+
+ To fit data to straight lines: y = a * x + b
+   add(x, y)
+
+ To fit data to exponential curves: y = exp(b) * exp(a * x)
+   add(x, log(y))
+
+ To fit data to logarithmic curves: y = a * log(x) + b
+   add(log(x), y)
+
+ To fit data to power curves: y = exp(b) * pow(x, a)
+   add(log(x), log(y))
+
+ */
 
 class regression {
 public:
@@ -10,9 +27,8 @@ public:
   void clear();
   /* add sample to linear regression */
   void add(float x, float y);
-  /* remove sample from linear regression */
+  /* remove previously added sample from linear regression */
   void remove(float x, float y);
-  /* y = a * x + b */
   int n();          /*!< number of samples */
   float a();        /*!< slope */
   float b();        /*!< intercept */

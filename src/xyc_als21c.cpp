@@ -120,20 +120,23 @@ void als21c_set_gain(als21c_gain_t gain) {
 void als21c_set_integration_time(uint16_t millisec) {
   uint32_t count;
   count = millisec;
-  count = count * 416 / 487;  // 416/487 = 1.17ms
+  count = count * 416 / 487;  /* 416/487 = 1.17ms */
 
-  if (count < 16) {
+  if (count == 0) {
     als21c_data.int_time = ALS21C_INT_TIME_1T;
-    als21c_data.als_conv = count;
-  } else if (count < 4 * 16) {
+    als21c_data.als_conv = 0;
+  } else if (count <= 16) {
+    als21c_data.int_time = ALS21C_INT_TIME_1T;
+    als21c_data.als_conv = count - 1;
+  } else if (count <= 4 * 16) {
     als21c_data.int_time = ALS21C_INT_TIME_4T;
-    als21c_data.als_conv = count / 4;
-  } else if (count < 16 * 16) {
+    als21c_data.als_conv = count / 4 - 1;
+  } else if (count <= 16 * 16) {
     als21c_data.int_time = ALS21C_INT_TIME_16T;
-    als21c_data.als_conv = count / 16;
-  } else if (count < 64 * 16) {
+    als21c_data.als_conv = count / 16 - 1;
+  } else if (count <= 64 * 16) {
     als21c_data.int_time = ALS21C_INT_TIME_64T;
-    als21c_data.als_conv = count / 64;
+    als21c_data.als_conv = count / 64 - 1;
   } else {
     als21c_data.int_time = ALS21C_INT_TIME_64T;
     als21c_data.als_conv = 15;
@@ -160,8 +163,7 @@ void als21c_set_integration(als21c_int_time_t itime, uint8_t icount) {
  */
 void als21c_set_wait_time(uint16_t millisec) {
 
-  if (millisec == 0) {
-    /* disable wait */
+  if (millisec <= 8) {
     als21c_data.wtime_unit = 0x0;
     als21c_data.wtime = 0;
   } else if (millisec <= 512) {
@@ -183,7 +185,7 @@ void als21c_set_wait_time(uint16_t millisec) {
   }
   als21c_set_reg_wait_time();
 
-  // disable wait if millisec == 0
+  /* disable wait if millisec == 0 */
   if (millisec == 0)
     als21c_data.en_wait = 0x0;
   else
@@ -276,9 +278,9 @@ int32_t als21c_read_lux() {
   max_count = 1024 * itime * (als_conv + 1) - 1;
   if (max_count > 0xffff) max_count = 0xffff;
 
-  // linear interpolation in lookup table. integer math, suitable for small microcontroller
+  /* linear interpolation in lookup table. integer math, suitable for small microcontroller */
   const uint32_t last_index = sizeof(lux_256) / sizeof(lux_256[0]) - 1;
-  uint32_t q = (256 * count) / (gain * itime * (als_conv + 1));  // normalized counts, multiplied by 256
+  uint32_t q = (256 * count) / (gain * itime * (als_conv + 1));  /* normalized counts, multiplied by 256 */
   uint32_t x1 = q >> 8;
   if (x1 > last_index - 1) x1 = last_index - 1;
   uint32_t y1 = lux_256[x1];
@@ -306,23 +308,23 @@ int32_t als21c_read_lux() {
   if (als21c_data.auto_lux) {
     if (als21c_data.saturation_als || als21c_data.saturation_comp || (count > max_count - max_count / 8)) {
       if (als21c_data.als_conv > 0)
-        // decrease als_conv
+        /* decrease als_conv */
         als21c_set_integration((als21c_int_time_t)als21c_data.int_time, als21c_data.als_conv - 1);
       else if (als21c_data.int_time != ALS21C_INT_TIME_1T)
-        // decrease int_time
+        /* decrease int_time */
         als21c_set_integration((als21c_int_time_t)(als21c_data.int_time - 1), 0);
       else if (als21c_data.pga_als != ALS21C_GAIN_1X)
-        // decrease gain
+        /* decrease gain */
         als21c_set_gain((als21c_gain_t)(als21c_data.pga_als >> 1));
     } else if (count < max_count / 8) {
       if (als21c_data.pga_als != ALS21C_GAIN_256X)
-        // increase gain
+        /* increase gain */
         als21c_set_gain((als21c_gain_t)(als21c_data.pga_als << 1));
       else if (als21c_data.int_time != ALS21C_INT_TIME_64T)
-        // increase int_time
+        /* increase int_time */
         als21c_set_integration((als21c_int_time_t)(als21c_data.int_time + 1), 0);
       else if (als21c_data.als_conv < 15)
-        // increase als_conv
+        /* increase als_conv */
         als21c_set_integration((als21c_int_time_t)als21c_data.int_time, als21c_data.als_conv + 1);
     }
   }

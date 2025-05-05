@@ -10,7 +10,6 @@
 
 #include <Wire.h>
 #include "xyc_als21c.h"
-#include "Adafruit_VEML7700.h"
 using namespace als21c;
 
 #define PIN_INTERRUPT PB1

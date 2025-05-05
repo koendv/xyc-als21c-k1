@@ -25,7 +25,7 @@ void regression::add(float x, float y) {
   _n++;
 }
 
-/*! @brief: remove a sample */
+/*! @brief: remove previously added sample */
 void regression::remove(float x, float y) {
   _sum_x -= x;
   _sum_x2 -= x * x;
