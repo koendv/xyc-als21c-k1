@@ -12,10 +12,10 @@
 #include <Wire.h>
 #include "xyc_als21c.h"
 #include "Adafruit_VEML7700.h"
-#include "regression.h"
+#include "curveFitting.h"
 using namespace als21c;
 
-regression lin_reg;
+linFit lin_reg;
 
 TwoWire Wire2;
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
