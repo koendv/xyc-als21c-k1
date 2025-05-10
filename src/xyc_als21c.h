@@ -52,7 +52,7 @@ enum {
   ALS21C_REG_PROD_ID = 0xBC,
 };
 
-/*! ALS gain values */
+/*! PGA_ALS gain values */
 typedef enum {
   ALS21C_GAIN_1X = 0x01,
   ALS21C_GAIN_4X = 0x02,
@@ -61,7 +61,7 @@ typedef enum {
   ALS21C_GAIN_256X = 0x10,
 } als21c_gain_t;
 
-/*! ALS integration time units */
+/*! ALS integration time units. 1 unit = 1.171 milliseconds */
 typedef enum {
   ALS21C_INT_TIME_1T = 0x00,
   ALS21C_INT_TIME_4T = 0x01,
@@ -69,40 +69,58 @@ typedef enum {
   ALS21C_INT_TIME_64T = 0x03,
 } als21c_int_time_t;
 
+/*! ALS wait time units. 1 unit = 8 milliseconds */
+typedef enum {
+  ALS21C_WAIT_TIME_1T = 0x00, /* 8 milliseconds */
+  ALS21C_WAIT_TIME_2T = 0x01, /* 16 milliseconds */
+  ALS21C_WAIT_TIME_4T = 0x02, /* 32 milliseconds */
+  ALS21C_WAIT_TIME_8T = 0x03, /* 64 milliseconds */
+} als21c_wait_time_t;
+
 bool als21c_begin();
 void als21c_end();
 void als21c_reset();
 void als21c_enable(bool onoff);
 void als21c_enable_once(bool onoff);
-void als21c_set_gain(als21c_gain_t gain);
-void als21c_set_integration_time(uint16_t millisec);
+void als21c_set_gain(uint8_t pdsel, als21c_gain_t pdals);
+void als21c_set_gain_value(uint32_t gain);
+uint32_t als21c_get_gain_value(void);
 void als21c_set_integration(als21c_int_time_t itime, uint8_t icount);
-void als21c_set_wait_time(uint16_t millisec);
+void als21c_set_integration_time(uint32_t count);
+uint32_t als21c_get_integration_time(void);
+void als21c_set_integration_time_millisec(uint32_t millisec);
+uint32_t als21c_get_integration_time_millisec(void);
+void als21c_set_wait(als21c_int_time_t unit, uint8_t count);
+void als21c_set_wait_time_millisec(uint16_t millisec);
+uint32_t als21c_get_wait_time_millisec(void);
 uint32_t als21c_get_delay_millisec();
-int32_t als21c_read_als();
-int32_t als21c_read_lux();
+int32_t als21c_get_max_count(void);
+void als21c_increase_gain(void);
+void als21c_decrease_gain(void);
+int32_t als21c_read_als(void);
+int32_t als21c_read_lux(void);
 void als21c_set_auto_lux(bool onoff);
 void als21c_enable_interrupt(bool onoff);
 void als21c_enable_als_sync(bool onoff);
-bool als21c_interrupt_status();
-void als21c_clear_interrupt();
+bool als21c_interrupt_status(void);
+void als21c_clear_interrupt(void);
 void als21c_set_persistence(uint8_t pers);
 void als21c_set_low_threshold(uint16_t value);
 void als21c_set_high_threshold(uint16_t value);
-uint16_t als21c_get_product_id();
+uint16_t als21c_get_product_id(void);
 
 /* low-level register access */
-void als21c_set_reg_sysm_ctrl();
-void als21c_set_reg_int_ctrl();
-void als21c_set_reg_int_flag();
-void als21c_get_reg_int_flag();
-void als21c_set_reg_wait_time();
-void als21c_set_reg_als_gain();
-void als21c_set_reg_als_time();
-void als21c_set_reg_persistence();
-void als21c_get_reg_data_status();
+void als21c_set_reg_sysm_ctrl(void);
+void als21c_set_reg_int_ctrl(void);
+void als21c_set_reg_int_flag(void);
+void als21c_get_reg_int_flag(void);
+void als21c_set_reg_wait_time(void);
+void als21c_set_reg_als_gain(void);
+void als21c_set_reg_als_time(void);
+void als21c_set_reg_persistence(void);
+void als21c_get_reg_data_status(void);
 /* os-dependent */
-void als21c_dump_regs();
+void als21c_dump_regs(void);
 void als21c_i2c_write8(const uint8_t reg, const uint8_t data);
 void als21c_i2c_write16(const uint8_t reg, const uint16_t data);
 uint8_t als21c_i2c_read8(const uint8_t reg);

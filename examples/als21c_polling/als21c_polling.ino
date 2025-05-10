@@ -3,9 +3,9 @@
  * prints light intensity in lux every second.
  *
  * stm32f103 pins:
- * PB11 xyc-als21c-k1 SDA
- * PB10 xyc-als21c-k1 SCL
- * PB1 xyc-als21c-k1 INT
+ * PB6 xyc-als21c-k1 SCL
+ * PB7 xyc-als21c-k1 SDA
+ * PB8 xyc-als21c-k1 INT
  */
 
 #include <Wire.h>
@@ -16,10 +16,8 @@ void setup() {
   // put your setup code here, to run once:
   while (!Serial)
     ;
-  Serial.begin(9600);
+  Serial.begin(115200);
 
-  Wire.setSDA(PB11);
-  Wire.setSCL(PB10);
   Wire.begin();
 
   if (!als21c_begin()) {
@@ -29,9 +27,9 @@ void setup() {
   } else
     Serial.println("xyc_als21c found");
 
-  als21c_set_gain(ALS21C_GAIN_256X);
-  als21c_set_integration(ALS21C_INT_TIME_64T, 0);
-  als21c_set_wait_time(250);
+  als21c_set_gain_value(256);
+  als21c_set_integration_time(64);
+  als21c_set_wait_time_millisec(250);
   // als21c_set_auto_lux(true);
   als21c_enable(true);
 }

@@ -1,6 +1,6 @@
 # NEWOPTO XYC-ALS21C-K1 Ambient Light Sensor
 
-![breakout board](doc/xyc_als21c_k1.jpg)
+![breakout board](doc/xyc_als21c_k1.webp)
 
 This is an Arduino driver for the [NEWOPTO](http://www.xycgd.com/) XYC-ALS21C-K1 Ambient Light Sensor.
 
@@ -26,17 +26,21 @@ Example arduino programs are included:
 
 - [als21c_auto-lux](examples/als21c_auto/als21c_auto.ino) automatically adjusts gain and integration time as needed to obtain a good reading.
 
-- [als21c_compare](examples/als21c_compare/als21c_compare.ino) compares NEWOPTO XYC-ALS21C-K1 and VISHAY VEML7700 using linear regression. Correlation between NEWOPTO XYC-ALS21C-K1 and VISHAY VEML7700 is typically 98% - 99%.
-
+- [als21c_compare](examples/als21c_compare/als21c_compare.ino) compares NEWOPTO XYC-ALS21C-K1 and VISHAY VEML7700 using linear regression.
+  
   ![comparing](doc/xyc_als21c_and_veml7700.jpg)
-
+  
   NEWOPTO XYC-ALS21C-K1 and VISHAY VEML7700 side by side.
 
 ## Breakout board
 
 The [breakout board](http://oshwlab.com/koendv/xyc_als21c_k1) is assembled at jlcpcb.
 
-## See Also
+## Reverse mounting
+
+Notes about [reverse mounting the XYC-ALS21C-K1](REVERSE.md)
+
+## See also
 
 This driver may also be of interest for the following similar IC's:
 
