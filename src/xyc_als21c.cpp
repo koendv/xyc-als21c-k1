@@ -12,6 +12,10 @@
 #ifdef __cplusplus
 #include <cstring>
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 namespace als21c {
 #else
 #include <string.h>
@@ -28,25 +32,25 @@ als21c_data_s als21c_data;
  */
 
 static const uint32_t lux_256[] = {
-    0,        122438,   244941,   367571,   490392,   613470,   736866,
-    860645,   984869,   1109602,  1234906,  1360843,  1487476,  1614866,
-    1743074,  1872160,  2002185,  2133209,  2265290,  2398487,  2532857,
-    2668458,  2805345,  2943575,  3083201,  3224279,  3366860,  3510997,
-    3656742,  3804143,  3953251,  4104114,  4256778,  4411289,  4567692,
-    4726031,  4886347,  5048682,  5213076,  5379566,  5548189,  5718982,
-    5891978,  6067209,  6244707,  6424501,  6606619,  6791087,  6977929,
-    7167169,  7358827,  7552923,  7749474,  7948496,  8150002,  8354004,
-    8560513,  8769534,  8981075,  9195140,  9411728,  9630841,  9852474,
-    10076624, 10303283, 10532440, 10764085, 10998203, 11234777, 11473788,
-    11715214, 11959032, 12205214, 12453731, 12704552, 12957642, 13212962,
-    13470475, 13730135, 13991899, 14255718, 14521539, 14789310, 15058972,
-    15330466, 15603728, 15878692, 16155289, 16433445, 16713087, 16994133,
-    17276503, 17560111, 17844868, 18130682, 18417457, 18705095, 18993492,
-    19282544, 19572141, 19862170, 20152513, 20443051, 20733660, 21024212,
-    21314576, 21604616, 21894194, 22183166, 22471385, 22758701, 23044960,
-    23330001, 23613663, 23895778, 24176175, 24454680, 24731113, 25005290,
-    25277023, 25546121, 25812386, 26075617, 26335611, 26592155, 26845037,
-    27094038, 27338933, 27579496, 27815494, 28046689, 28272839
+  0, 122438, 244941, 367571, 490392, 613470, 736866,
+  860645, 984869, 1109602, 1234906, 1360843, 1487476, 1614866,
+  1743074, 1872160, 2002185, 2133209, 2265290, 2398487, 2532857,
+  2668458, 2805345, 2943575, 3083201, 3224279, 3366860, 3510997,
+  3656742, 3804143, 3953251, 4104114, 4256778, 4411289, 4567692,
+  4726031, 4886347, 5048682, 5213076, 5379566, 5548189, 5718982,
+  5891978, 6067209, 6244707, 6424501, 6606619, 6791087, 6977929,
+  7167169, 7358827, 7552923, 7749474, 7948496, 8150002, 8354004,
+  8560513, 8769534, 8981075, 9195140, 9411728, 9630841, 9852474,
+  10076624, 10303283, 10532440, 10764085, 10998203, 11234777, 11473788,
+  11715214, 11959032, 12205214, 12453731, 12704552, 12957642, 13212962,
+  13470475, 13730135, 13991899, 14255718, 14521539, 14789310, 15058972,
+  15330466, 15603728, 15878692, 16155289, 16433445, 16713087, 16994133,
+  17276503, 17560111, 17844868, 18130682, 18417457, 18705095, 18993492,
+  19282544, 19572141, 19862170, 20152513, 20443051, 20733660, 21024212,
+  21314576, 21604616, 21894194, 22183166, 22471385, 22758701, 23044960,
+  23330001, 23613663, 23895778, 24176175, 24454680, 24731113, 25005290,
+  25277023, 25546121, 25812386, 26075617, 26335611, 26592155, 26845037,
+  27094038, 27338933, 27579496, 27815494, 28046689, 28272839
 };
 
 /*!
@@ -105,46 +109,55 @@ void als21c_enable_once(bool onoff) {
 
 /*!
  * @brief  set the ambient light sensor gain
- * @param  gain
+ * @param  pdsel new value for pd_sel
+ * @param  pdals new value for pd_als
  */
-void als21c_set_gain(als21c_gain_t gain) {
-  als21c_data.pga_als = gain;
+void als21c_set_gain(uint8_t pdsel, als21c_gain_t pdals) {
+  /* pd_sel == 1 for gain*2 */
+  als21c_data.pd_sel = pdsel & 0x1;
+  /* pd_als */
+  als21c_data.pga_als = pdals;
+  /* write gain */
   als21c_set_reg_als_gain();
 }
 
 /*!
- * @brief  set the integration time for the ADC in millis
- * @param  millisec
- *         integration time
+ * @brief  set the ambient light sensor gain
+ * @param  gain
+ *         actual gain is power of two between 1 and 512
  */
-void als21c_set_integration_time(uint16_t millisec) {
-  uint32_t count;
-  count = millisec;
-  count = count * 416 / 487;  /* 416/487 = 1.17ms */
-
-  if (count == 0) {
-    als21c_data.int_time = ALS21C_INT_TIME_1T;
-    als21c_data.als_conv = 0;
-  } else if (count <= 16) {
-    als21c_data.int_time = ALS21C_INT_TIME_1T;
-    als21c_data.als_conv = count - 1;
-  } else if (count <= 4 * 16) {
-    als21c_data.int_time = ALS21C_INT_TIME_4T;
-    als21c_data.als_conv = count / 4 - 1;
-  } else if (count <= 16 * 16) {
-    als21c_data.int_time = ALS21C_INT_TIME_16T;
-    als21c_data.als_conv = count / 16 - 1;
-  } else if (count <= 64 * 16) {
-    als21c_data.int_time = ALS21C_INT_TIME_64T;
-    als21c_data.als_conv = count / 64 - 1;
-  } else {
-    als21c_data.int_time = ALS21C_INT_TIME_64T;
-    als21c_data.als_conv = 15;
-  }
-
-  als21c_set_reg_als_time();
+void als21c_set_gain_value(uint32_t gain) {
+  if (gain <= 1) als21c_set_gain(0, ALS21C_GAIN_1X);
+  else if (gain <= 2) als21c_set_gain(1, ALS21C_GAIN_1X);
+  else if (gain <= 4) als21c_set_gain(0, ALS21C_GAIN_4X);
+  else if (gain <= 8) als21c_set_gain(1, ALS21C_GAIN_4X);
+  else if (gain <= 16) als21c_set_gain(0, ALS21C_GAIN_16X);
+  else if (gain <= 32) als21c_set_gain(1, ALS21C_GAIN_16X);
+  else if (gain <= 64) als21c_set_gain(0, ALS21C_GAIN_64X);
+  else if (gain <= 128) als21c_set_gain(1, ALS21C_GAIN_64X);
+  else if (gain <= 256) als21c_set_gain(0, ALS21C_GAIN_256X);
+  else als21c_set_gain(1, ALS21C_GAIN_256X);
+  return;
 }
 
+/*!
+ * @brief  returns the ambient light sensor gain
+ * @return gain
+ *         gain is power of two between 1 and 512
+ */
+uint32_t als21c_get_gain_value() {
+  uint32_t gain_value;
+  switch (als21c_data.pga_als) {
+    case ALS21C_GAIN_1X: gain_value = 1; break;
+    case ALS21C_GAIN_4X: gain_value = 4; break;
+    case ALS21C_GAIN_16X: gain_value = 16; break;
+    case ALS21C_GAIN_64X: gain_value = 64; break;
+    case ALS21C_GAIN_256X: gain_value = 256; break;
+    default: gain_value = 1; break;
+  }
+  if (als21c_data.pd_sel) gain_value *= 2;
+  return gain_value;
+}
 
 /*!
  * @brief  set the integration time for the ADC
@@ -156,34 +169,98 @@ void als21c_set_integration(als21c_int_time_t itime, uint8_t icount) {
   als21c_data.als_conv = icount;
   als21c_set_reg_als_time();
 }
+
 /*!
- * @brief  set the wait time between two measurements in millis
+ * @brief  set the integration time for the ADC in units of 1.17ms
+ * @param  count
+ *         integration time in units of 1.17 milliseconds
+ */
+void als21c_set_integration_time(uint32_t count) {
+  if (count == 0) als21c_set_integration(ALS21C_INT_TIME_1T, 0);
+  else if (count <= 16) als21c_set_integration(ALS21C_INT_TIME_1T, count - 1);
+  else if (count <= 4 * 16) als21c_set_integration(ALS21C_INT_TIME_4T, count / 4 - 1);
+  else if (count <= 16 * 16) als21c_set_integration(ALS21C_INT_TIME_16T, count / 16 - 1);
+  else if (count <= 64 * 16) als21c_set_integration(ALS21C_INT_TIME_64T, count / 64 - 1);
+  else als21c_set_integration(ALS21C_INT_TIME_64T, 15); /* maximum value */
+}
+
+/*!
+ * @brief  get the integration time for the ADC in units of 1.17ms
+ * @param  none
+ * @return integration time in units of 1.17 milliseconds
+ */
+uint32_t als21c_get_integration_time(void) {
+  uint32_t itime;
+  switch (als21c_data.int_time) {
+    case ALS21C_INT_TIME_1T: itime = 1; break;
+    case ALS21C_INT_TIME_4T: itime = 4; break;
+    case ALS21C_INT_TIME_16T: itime = 16; break;
+    case ALS21C_INT_TIME_64T: itime = 64; break;
+    default: itime = 1; break; /* should never happen */
+  }
+  itime = itime * (als21c_data.als_conv + 1);
+  return itime;
+}
+
+/*!
+ * @brief  set the integration time for the ADC in milliseconds
+ * @param  millisec
+ *         integration time in milliseconds
+ */
+void als21c_set_integration_time_millisec(uint32_t millisec) {
+  uint32_t count;
+  count = (millisec * 416) / 487; /* 416/487 = 1.17ms */
+  als21c_set_integration_time(count);
+}
+
+/*!
+ * @brief  get the integration time for the ADC in milliseconds
+ * @param  none
+ * @return integration time in milliseconds
+ */
+uint32_t als21c_get_integration_time_millisec(void) {
+  uint32_t count, millisec;
+  count = als21c_get_integration_time();
+  millisec = (count * 487) / 416; /* 416/487 = 1.17ms */
+  return millisec;
+}
+
+/*!
+ * @brief  get maximum value of als21c_read_als()
+ * @param  none
+ * @return maximum ALS count
+ */
+int32_t als21c_get_max_count(void) {
+  int32_t max_count, integration_time;
+  integration_time = als21c_get_integration_time();
+  max_count = 1024 * integration_time - 1;
+  if (max_count > 0xffff) max_count = 0xffff;
+  return max_count;
+}
+
+/*!
+ * @brief  set the wait time between two measurements
+ * @param  millisec
+ */
+void als21c_set_wait(als21c_wait_time_t unit, uint8_t count) {
+  als21c_data.wtime_unit = unit;
+  als21c_data.wtime = count;
+  als21c_set_reg_wait_time();
+}
+
+/*!
+ * @brief  set the wait time between two measurements in milliseconds
  * @param  millisec
  *         wait time 0 switches waiting off
  */
-void als21c_set_wait_time(uint16_t millisec) {
+void als21c_set_wait_time_millisec(uint16_t millisec) {
 
-  if (millisec <= 8) {
-    als21c_data.wtime_unit = 0x0;
-    als21c_data.wtime = 0;
-  } else if (millisec <= 512) {
-    als21c_data.wtime_unit = 0x0;
-    als21c_data.wtime = millisec / 8 - 1;
-  } else if (millisec <= 1024) {
-    als21c_data.wtime_unit = 0x1;
-    als21c_data.wtime = millisec / 16 - 1;
-  } else if (millisec <= 2048) {
-    als21c_data.wtime_unit = 0x2;
-    als21c_data.wtime = millisec / 32 - 1;
-  } else if (millisec <= 4096) {
-    als21c_data.wtime_unit = 0x3;
-    als21c_data.wtime = millisec / 64 - 1;
-  } else {
-    /* overflow */
-    als21c_data.wtime_unit = 0x3;
-    als21c_data.wtime = 0x3f;
-  }
-  als21c_set_reg_wait_time();
+  if (millisec <= 8) als21c_set_wait(ALS21C_WAIT_TIME_1T, 0);
+  else if (millisec <= 512) als21c_set_wait(ALS21C_WAIT_TIME_1T, millisec / 8 - 1);
+  else if (millisec <= 1024) als21c_set_wait(ALS21C_WAIT_TIME_2T, millisec / 16 - 1);
+  else if (millisec <= 2048) als21c_set_wait(ALS21C_WAIT_TIME_4T, millisec / 32 - 1);
+  else if (millisec <= 4096) als21c_set_wait(ALS21C_WAIT_TIME_8T, millisec / 64 - 1);
+  else als21c_set_wait(ALS21C_WAIT_TIME_8T, 0x3f); /* maximum value */
 
   /* disable wait if millisec == 0 */
   if (millisec == 0)
@@ -194,29 +271,28 @@ void als21c_set_wait_time(uint16_t millisec) {
 }
 
 /*!
- * @brief  return time in millis between two measurements
+ * @brief  return wait time in millis between two measurements
  * @return millisec
- *         sum of integration time and wait time
  */
-uint32_t als21c_get_delay_millisec() {
-  uint32_t itime, wtime, millisec;
-
-  switch (als21c_data.int_time) {
-    case ALS21C_INT_TIME_1T: itime = 1; break;
-    case ALS21C_INT_TIME_4T: itime = 4; break;
-    case ALS21C_INT_TIME_16T: itime = 16; break;
-    case ALS21C_INT_TIME_64T: itime = 64; break;
-    default: itime = 1; break;
-  }
-  itime = itime * (als21c_data.als_conv + 1);
-  millisec = (487 * itime + 416) / 417;
-
+uint32_t als21c_get_wait_time_millisec() {
+  uint32_t wtime, millisec;
+  millisec = 0;
   if (als21c_data.en_wait) {
     wtime = 8 << als21c_data.wtime_unit;
     wtime = wtime * (als21c_data.wtime + 1);
     millisec = millisec + wtime;
   }
+  return millisec;
+}
 
+/*!
+ * @brief  return total time in millis between two measurements
+ * @return millisec
+ *         sum of integration time and wait time
+ */
+uint32_t als21c_get_delay_millisec() {
+  uint32_t millisec;
+  millisec = als21c_get_integration_time_millisec() + als21c_get_wait_time_millisec();
   return millisec;
 }
 
@@ -237,6 +313,48 @@ int32_t als21c_read_als() {
   return count;
 }
 
+void als21c_increase_gain() {
+  if (als21c_data.pd_sel == 0) {
+    /* double gain */
+    als21c_data.pd_sel = 1;
+    als21c_set_reg_als_gain();
+  } else if (als21c_data.pga_als != ALS21C_GAIN_256X) {
+    /* more gain */
+    als21c_data.pga_als <<= 1;
+    als21c_data.pd_sel = 0;
+    als21c_set_reg_als_gain();
+  } else if (als21c_data.int_time != ALS21C_INT_TIME_64T) {
+    /* increase int_time */
+    als21c_data.int_time++;
+    als21c_set_reg_als_time();
+  } else if (als21c_data.als_conv < 15) {
+    /* increase als_conv */
+    als21c_data.als_conv++;
+    als21c_set_reg_als_time();
+  }
+}
+
+void als21c_decrease_gain() {
+  if (als21c_data.als_conv > 0) {
+    /* decrease als_conv */
+    --als21c_data.als_conv;
+    als21c_set_reg_als_time();
+  } else if (als21c_data.int_time != ALS21C_INT_TIME_1T) {
+    /* decrease int_time */
+    --als21c_data.int_time;
+    als21c_set_reg_als_time();
+  } else if (als21c_data.pd_sel == 1) {
+    /* halve gain */
+    als21c_data.pd_sel = 0;
+    als21c_set_reg_als_gain();
+  } else if (als21c_data.pga_als != ALS21C_GAIN_1X) {
+    /* less gain */
+    als21c_data.pga_als >>= 1;
+    als21c_data.pd_sel = 1;
+    als21c_set_reg_als_gain();
+  }
+}
+
 /*!
  * @brief  return ALS light intensity in lux
  * @return lux
@@ -247,40 +365,20 @@ int32_t als21c_read_als() {
  *         ALS21C_ERR_NOT_READY: reading too soon (sensor still counting)
  */
 int32_t als21c_read_lux() {
-  int32_t count, gain, itime, als_conv, max_count;
+  int32_t count, gain, integration_time, max_count;
   int32_t lux;
 
   als21c_get_reg_data_status();
   if (!als21c_data.data_ready) return ALS21C_ERR_NOT_READY;
 
   count = als21c_i2c_read16(ALS21C_REG_ALS_DATA);
-
-  switch (als21c_data.pga_als) {
-    case ALS21C_GAIN_1X: gain = 1; break;
-    case ALS21C_GAIN_4X: gain = 4; break;
-    case ALS21C_GAIN_16X: gain = 16; break;
-    case ALS21C_GAIN_64X: gain = 64; break;
-    case ALS21C_GAIN_256X: gain = 256; break;
-    default: gain = 1; break;
-  }
-  if (als21c_data.pd_sel) gain *= 2;
-
-  switch (als21c_data.int_time) {
-    case ALS21C_INT_TIME_1T: itime = 1; break;
-    case ALS21C_INT_TIME_4T: itime = 4; break;
-    case ALS21C_INT_TIME_16T: itime = 16; break;
-    case ALS21C_INT_TIME_64T: itime = 64; break;
-    default: itime = 1; break;
-  }
-
-  als_conv = als21c_data.als_conv;
-
-  max_count = 1024 * itime * (als_conv + 1) - 1;
-  if (max_count > 0xffff) max_count = 0xffff;
+  gain = als21c_get_gain_value();
+  integration_time = als21c_get_integration_time();
+  max_count = als21c_get_max_count();
 
   /* linear interpolation in lookup table. integer math, suitable for small microcontroller */
   const uint32_t last_index = sizeof(lux_256) / sizeof(lux_256[0]) - 1;
-  uint32_t q = (256 * count) / (gain * itime * (als_conv + 1));  /* normalized counts, multiplied by 256 */
+  uint32_t q = (256 * count) / (gain * integration_time); /* normalized counts, multiplied by 256 */
   uint32_t x1 = q >> 8;
   if (x1 > last_index - 1) x1 = last_index - 1;
   uint32_t y1 = lux_256[x1];
@@ -290,43 +388,33 @@ int32_t als21c_read_lux() {
   lux = (y1 + delta_y) / 256;
 
 #if 0
+  Serial.print("\033[2J\033[H"); // clear screen
   Serial.print("count: ");
   Serial.print(count);
   Serial.print(" max_count: ");
-  Serial.print(max_count);
-  Serial.print(" gain: ");
-  Serial.print(gain);
-  Serial.print(" itime: ");
-  Serial.print(itime);
-  Serial.print(" als_conv: ");
-  Serial.print(als_conv);
+  Serial.println(max_count);
   Serial.print(" lux: ");
   Serial.println(lux);
+  Serial.print(" gain: ");
+  Serial.print(gain);
+  Serial.print(" pd_sel: ");
+  Serial.print(als21c_data.pd_sel);
+  Serial.print(" pga_als: ");
+  Serial.println(als21c_data.pga_als);
+  Serial.print(" integration_time: ");
+  Serial.print(integration_time);
+  Serial.print(" als_conv: ");
+  Serial.print(als21c_data.als_conv);
+  Serial.print(" int_time: ");
+  Serial.println(als21c_data.int_time);
 #endif
 
-  /* auto configuration of pga_als, int_time and als_conv */
+  /* automatic configuration of gain and integration time */
   if (als21c_data.auto_lux) {
-    if (als21c_data.saturation_als || als21c_data.saturation_comp || (count > max_count - max_count / 8)) {
-      if (als21c_data.als_conv > 0)
-        /* decrease als_conv */
-        als21c_set_integration((als21c_int_time_t)als21c_data.int_time, als21c_data.als_conv - 1);
-      else if (als21c_data.int_time != ALS21C_INT_TIME_1T)
-        /* decrease int_time */
-        als21c_set_integration((als21c_int_time_t)(als21c_data.int_time - 1), 0);
-      else if (als21c_data.pga_als != ALS21C_GAIN_1X)
-        /* decrease gain */
-        als21c_set_gain((als21c_gain_t)(als21c_data.pga_als >> 1));
-    } else if (count < max_count / 8) {
-      if (als21c_data.pga_als != ALS21C_GAIN_256X)
-        /* increase gain */
-        als21c_set_gain((als21c_gain_t)(als21c_data.pga_als << 1));
-      else if (als21c_data.int_time != ALS21C_INT_TIME_64T)
-        /* increase int_time */
-        als21c_set_integration((als21c_int_time_t)(als21c_data.int_time + 1), 0);
-      else if (als21c_data.als_conv < 15)
-        /* increase als_conv */
-        als21c_set_integration((als21c_int_time_t)als21c_data.int_time, als21c_data.als_conv + 1);
-    }
+    if (als21c_data.saturation_als || als21c_data.saturation_comp || (count > max_count - max_count / 4))
+      als21c_decrease_gain();
+    else if (count < max_count / 4)
+      als21c_increase_gain();
   }
 
   if (als21c_data.saturation_als || als21c_data.saturation_comp)
@@ -346,8 +434,8 @@ void als21c_set_auto_lux(bool onoff) {
   als21c_data.auto_lux = onoff;
   if (onoff) {
     /* begin with lowest amplification, avoid saturation */
-    als21c_set_gain(ALS21C_GAIN_1X);
-    als21c_set_integration(ALS21C_INT_TIME_1T, 0);
+    als21c_set_gain_value(1);
+    als21c_set_integration_time(1);
   }
 }
 
