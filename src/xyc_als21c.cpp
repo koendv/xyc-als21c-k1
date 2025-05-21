@@ -70,9 +70,9 @@ int32_t als21c_count_to_lux(uint16_t count) {
 
   /* linear interpolation in lookup table. integer math, suitable for small microcontroller */
   const uint32_t last_index = sizeof(lux_table) / sizeof(lux_table[0]) - 1;
-  uint32_t q = (256 * count) / (gain * integration_time); /* normalized counts, multiplied by 256 */
-  uint32_t x1 = q >> 8;
-  uint32_t delta_x = q & 0xff;
+  int32_t q = (256 * count) / (gain * integration_time); /* normalized counts, multiplied by 256 */
+  int32_t x1 = q >> 8;
+  int32_t delta_x = q & 0xff;
 
   if (x1 > last_index - 1) {
     x1 = last_index - 1;
@@ -80,10 +80,10 @@ int32_t als21c_count_to_lux(uint16_t count) {
   }
 
   /* lookup in table */
-  uint32_t y1 = lux_table[x1];
-  uint32_t y2 = lux_table[x1 + 1];
+  int32_t y1 = lux_table[x1];
+  int32_t y2 = lux_table[x1 + 1];
   /* interpolate */
-  uint32_t delta_y = ((y2 - y1) * delta_x) / 256;
+  int32_t delta_y = ((y2 - y1) * delta_x) / 256;
   lux = y1 + delta_y;
 
   return lux;
