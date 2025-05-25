@@ -7,7 +7,7 @@
  *
  */
 
-#include <xyc_als21c.h>
+#include <xyc_als21c_k1.h>
 
 #ifdef __cplusplus
 #include <cstring>
@@ -119,7 +119,6 @@ bool als21c_begin() {
     return false;
   /* reset */
   als21c_reset();
-
   return true;
 }
 
@@ -457,11 +456,6 @@ int32_t als21c_read_lux() {
  */
 void als21c_set_auto_lux(bool onoff) {
   als21c_data.auto_lux = onoff;
-  if (onoff) {
-    /* begin with lowest amplification, smallest integration time, avoid saturation */
-    als21c_set_gain_value(1);
-    als21c_set_integration_time(1);
-  }
 }
 
 /*!

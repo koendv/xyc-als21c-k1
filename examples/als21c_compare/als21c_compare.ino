@@ -9,7 +9,7 @@
 
 #include <Wire.h>
 #include "Adafruit_VEML7700.h"
-#include "xyc_als21c.h"
+#include "xyc_als21c_k1.h"
 #include "curveFitting.h"
 
 using namespace als21c;

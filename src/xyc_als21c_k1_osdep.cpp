@@ -8,7 +8,7 @@
  *      code for Arduino
  */
 
-#include <xyc_als21c.h>
+#include <xyc_als21c_k1.h>
 
 #ifdef __cplusplus
 #include <Wire.h>

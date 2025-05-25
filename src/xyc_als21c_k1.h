@@ -17,6 +17,7 @@
 namespace als21c {
 #else
 #include <stdint.h>
+#include <stdbool.h>
 #endif
 
 /* I2C device address */
@@ -90,7 +91,7 @@ void als21c_set_integration_time(uint32_t count);
 uint32_t als21c_get_integration_time(void);
 void als21c_set_integration_time_millisec(uint32_t millisec);
 uint32_t als21c_get_integration_time_millisec(void);
-void als21c_set_wait(als21c_int_time_t unit, uint8_t count);
+void als21c_set_wait(als21c_wait_time_t unit, uint8_t count);
 void als21c_set_wait_time_millisec(uint16_t millisec);
 uint32_t als21c_get_wait_time_millisec(void);
 uint32_t als21c_get_delay_millisec();

@@ -9,7 +9,7 @@
  */
 
 #include <Wire.h>
-#include "xyc_als21c.h"
+#include "xyc_als21c_k1.h"
 using namespace als21c;
 
 #define PIN_INTERRUPT PB8
