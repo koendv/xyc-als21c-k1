@@ -40,6 +40,10 @@ The [breakout board](http://oshwlab.com/koendv/xyc_als21c_k1) is assembled at jl
 
 Notes about [reverse mounting the XYC-ALS21C-K1](REVERSE.md)
 
+## Other os
+
+The driver is easily adapter to other operating systems, like [rt-thread](othersrc/README.md)
+
 ## See also
 
 This driver may also be of interest for the following similar IC's:
@@ -47,4 +51,4 @@ This driver may also be of interest for the following similar IC's:
 - GOODTAKE [GT442-DALS-Z1](doc/GT442-DALS-Z1.pdf) / GT4421-DALS-Z1
 - GOODTAKE [SDF-DALS-Z1-TT/TR](doc/SDF-DALS-Z1.pdf) (same footprint as VEML7700)
 - [ALS-AK610P-DF](doc/ALS-AK610P-DF.pdf)
-- [WH11867UF](doc/WH11867UF.pdf)
+- [WH11867UF](doc/WH11867UF.pdf) 
