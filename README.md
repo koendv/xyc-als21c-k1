@@ -42,7 +42,7 @@ Notes about [reverse mounting the XYC-ALS21C-K1](REVERSE.md)
 
 ## Other os
 
-The driver is easily adapter to other operating systems, like [rt-thread](othersrc/README.md)
+The driver is easily adapter to other operating systems, like [rt-thread](https://github.com/koendv/xyc-als21c-k1-rtthread)
 
 ## See also
 
